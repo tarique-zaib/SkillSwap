@@ -110,6 +110,51 @@ public class MatchController : ControllerBase
         }
     }
 
+    [HttpPut("{matchId:guid}/complete")]
+    public async Task<IActionResult> Complete(
+    Guid matchId,
+    CancellationToken cancellationToken)
+    {
+        string? userId = User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(userId, out Guid parsedUserId))
+        {
+            return Unauthorized(new
+            {
+                message = "Invalid authentication token."
+            });
+        }
+
+        try
+        {
+            var match = await _matchService.CompleteAsync(
+                parsedUserId,
+                matchId,
+                cancellationToken);
+
+            return Ok(new
+            {
+                match.Id,
+                match.OfferId,
+                match.NeedId,
+                match.Status,
+                match.UpdatedAtUtc
+            });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+    }
+
     [HttpGet("mine")]
     public async Task<IActionResult> GetMyMatches(
     CancellationToken cancellationToken)

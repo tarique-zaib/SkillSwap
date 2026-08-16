@@ -70,6 +70,28 @@ public class AuthService : IAuthService
 
         _dbContext.Users.Add(user);
 
+        var address = new Address
+        {
+            Id = Guid.NewGuid(),
+
+            UserId = user.Id,
+
+            AddressLine1 = request.AddressLine1 ?? string.Empty,
+            City = request.City ?? string.Empty,
+            State = request.State ?? string.Empty,
+            PostalCode = request.PostalCode ?? string.Empty,
+
+            Latitude = request.Latitude,
+
+            Longitude = request.Longitude,
+
+            IsVerified = false,
+
+            VerifiedAtUtc = DateTime.UtcNow
+        };
+
+        _dbContext.Addresses.Add(address);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return new RegisterResponse

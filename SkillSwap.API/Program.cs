@@ -56,6 +56,7 @@ builder.Services.AddScoped<IVouchService, VouchService>();
 builder.Services.AddScoped<IReciprocityService, ReciprocityService>();
 builder.Services.AddScoped<ITrustService, TrustService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
 
 string jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException(

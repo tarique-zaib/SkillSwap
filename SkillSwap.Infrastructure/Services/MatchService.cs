@@ -137,6 +137,51 @@ public class MatchService : IMatchService
         return match;
     }
 
+    public async Task<Match> CompleteAsync(
+    Guid userId,
+    Guid matchId,
+    CancellationToken cancellationToken = default)
+    {
+        var match = await _dbContext.Matches
+            .Include(x => x.Offer)
+            .Include(x => x.Need)
+            .FirstOrDefaultAsync(
+                x => x.Id == matchId,
+                cancellationToken);
+
+        if (match is null)
+        {
+            throw new InvalidOperationException(
+                "Match not found.");
+        }
+
+        // Only participants in the match can complete it.
+        bool isParticipant =
+            match.Offer.UserId == userId ||
+            match.Need.UserId == userId;
+
+        if (!isParticipant)
+        {
+            throw new UnauthorizedAccessException(
+                "Only participants of this match can complete it.");
+        }
+
+        // Only an accepted match can be completed.
+        if (match.Status != MatchStatus.Accepted)
+        {
+            throw new InvalidOperationException(
+                "Only an accepted match can be completed.");
+        }
+
+        match.Status = MatchStatus.Completed;
+        match.UpdatedAtUtc = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(
+            cancellationToken);
+
+        return match;
+    }
+
     public async Task<List<Match>> GetMyMatchesAsync(
     Guid userId,
     CancellationToken cancellationToken = default)

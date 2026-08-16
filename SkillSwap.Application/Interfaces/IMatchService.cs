@@ -12,12 +12,17 @@ public interface IMatchService
         CancellationToken cancellationToken = default);
 
     Task<Match> RespondAsync(
-    Guid userId,
-    Guid matchId,
-    MatchStatus status,
-    CancellationToken cancellationToken = default);
+        Guid userId,
+        Guid matchId,
+        MatchStatus status,
+        CancellationToken cancellationToken = default);
+
+    Task<Match> CompleteAsync(
+        Guid userId,
+        Guid matchId,
+        CancellationToken cancellationToken = default);
 
     Task<List<Match>> GetMyMatchesAsync(
-    Guid userId,
-    CancellationToken cancellationToken = default);
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

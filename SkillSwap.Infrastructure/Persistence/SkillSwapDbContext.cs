@@ -23,6 +23,7 @@ public class SkillSwapDbContext : DbContext
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<Favor> Favors => Set<Favor>();
     public DbSet<Vouch> Vouches => Set<Vouch>();
+    public DbSet<Rating> Ratings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
