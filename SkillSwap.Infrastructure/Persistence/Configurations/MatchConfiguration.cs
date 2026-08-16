@@ -15,6 +15,9 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.Property(x => x.Status)
             .IsRequired();
 
+        builder.Property(x => x.InitiatedByUserId)
+            .IsRequired();
+
         builder.HasIndex(x => new
         {
             x.OfferId,
@@ -30,6 +33,11 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.HasOne(x => x.Need)
             .WithMany()
             .HasForeignKey(x => x.NeedId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.InitiatedByUser)
+            .WithMany()
+            .HasForeignKey(x => x.InitiatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -182,6 +182,7 @@ public class MatchController : ControllerBase
             match.Status,
             match.CreatedAtUtc,
             match.UpdatedAtUtc,
+            match.InitiatedByUserId,
             Offer = match.Offer == null
                 ? null
                 : new

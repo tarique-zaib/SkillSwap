@@ -16,15 +16,14 @@ public class MatchService : IMatchService
     }
 
     public async Task<Match> CreateAsync(
-        Guid userId,
-        Guid offerId,
-        Guid needId,
-        CancellationToken cancellationToken = default)
+    Guid userId,
+    Guid offerId,
+    Guid needId,
+    CancellationToken cancellationToken = default)
     {
         var offer = await _dbContext.SkillListings
             .FirstOrDefaultAsync(
                 x => x.Id == offerId &&
-                     x.UserId == userId &&
                      x.Type == SkillListingType.Offer &&
                      x.IsActive,
                 cancellationToken);
@@ -32,7 +31,7 @@ public class MatchService : IMatchService
         if (offer is null)
         {
             throw new InvalidOperationException(
-                "Offer not found or does not belong to the current user.");
+                "Offer not found.");
         }
 
         var need = await _dbContext.SkillListings
@@ -48,10 +47,21 @@ public class MatchService : IMatchService
                 "Need not found.");
         }
 
-        if (need.UserId == userId)
+        // The current user must own either the Offer or the Need.
+        bool isOfferOwner = offer.UserId == userId;
+        bool isNeedOwner = need.UserId == userId;
+
+        if (!isOfferOwner && !isNeedOwner)
+        {
+            throw new UnauthorizedAccessException(
+                "You are not a participant in this match.");
+        }
+
+        // A user cannot match their own Offer with their own Need.
+        if (offer.UserId == need.UserId)
         {
             throw new InvalidOperationException(
-                "You cannot create a match with your own listing.");
+                "You cannot create a match with your own listings.");
         }
 
         if (!string.Equals(
@@ -80,6 +90,10 @@ public class MatchService : IMatchService
             Id = Guid.NewGuid(),
             OfferId = offerId,
             NeedId = needId,
+
+            // Remember who initiated this match.
+            InitiatedByUserId = userId,
+
             Status = MatchStatus.Proposed,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -105,6 +119,7 @@ public class MatchService : IMatchService
         }
 
         var match = await _dbContext.Matches
+            .Include(x => x.Offer)
             .Include(x => x.Need)
             .FirstOrDefaultAsync(
                 x => x.Id == matchId,
@@ -116,11 +131,21 @@ public class MatchService : IMatchService
                 "Match not found.");
         }
 
-        // The owner of the Need responds to the proposed match.
-        if (match.Need.UserId != userId)
+        // The person who DID NOT initiate the match responds.
+        if (match.InitiatedByUserId == userId)
         {
             throw new UnauthorizedAccessException(
-                "Only the need owner can respond to this match.");
+                "You cannot respond to your own match request.");
+        }
+
+        // Make sure the responder is actually the other participant.
+        bool isOfferOwner = match.Offer.UserId == userId;
+        bool isNeedOwner = match.Need.UserId == userId;
+
+        if (!isOfferOwner && !isNeedOwner)
+        {
+            throw new UnauthorizedAccessException(
+                "Only the other participant can respond to this match.");
         }
 
         if (match.Status != MatchStatus.Proposed)
