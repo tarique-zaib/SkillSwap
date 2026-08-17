@@ -83,7 +83,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        RegisterResponse? response =
+        CurrentUserProfileDto? response =
             await _authService.GetCurrentUserAsync(
                 parsedUserId,
                 cancellationToken);

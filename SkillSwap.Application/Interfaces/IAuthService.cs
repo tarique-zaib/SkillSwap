@@ -12,7 +12,7 @@ public interface IAuthService
         LoginRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<RegisterResponse?> GetCurrentUserAsync(
-    Guid userId,
-    CancellationToken cancellationToken = default);
+    Task<CurrentUserProfileDto?> GetCurrentUserAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkillSwap.Application.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using SkillSwap.API.Hubs;
 
 namespace SkillSwap.API.Controllers;
 
@@ -11,10 +13,15 @@ namespace SkillSwap.API.Controllers;
 public class ChatController : ControllerBase
 {
     private readonly IChatService _chatService;
+    private readonly IHubContext<ChatHub> _hubContext;
 
-    public ChatController(IChatService chatService)
+
+    public ChatController(
+    IChatService chatService,
+    IHubContext<ChatHub> hubContext)
     {
         _chatService = chatService;
+        _hubContext = hubContext;
     }
 
     // GET /api/Chat/match/{matchId}
@@ -62,26 +69,33 @@ public class ChatController : ControllerBase
         try
         {
             var message = await _chatService.SendMessageAsync(
-                userId,
-                conversationId,
-                request.Content,
-                cancellationToken);
+            userId,
+            conversationId,
+            request.Content,
+            cancellationToken);
 
-            return StatusCode(
+            await _hubContext.Clients
+                .Group($"conversation:{conversationId}")
+                .SendAsync(
+                    "NewMessage",
+                    message,
+                    cancellationToken);
+
+                return StatusCode(
                 StatusCodes.Status201Created,
                 message);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new
-            {
-                message = ex.Message
-            });
-        }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return Forbid();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new
+                    {
+                        message = ex.Message
+                    });
+                }
     }
 
     // GET /api/Chat/{conversationId}/messages

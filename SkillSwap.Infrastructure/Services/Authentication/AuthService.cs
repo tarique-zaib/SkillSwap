@@ -173,12 +173,13 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<RegisterResponse?> GetCurrentUserAsync(
+    public async Task<CurrentUserProfileDto?> GetCurrentUserAsync(
     Guid userId,
     CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users
             .AsNoTracking()
+            .Include(x => x.Address)
             .FirstOrDefaultAsync(
                 x => x.Id == userId,
                 cancellationToken);
@@ -188,13 +189,38 @@ public class AuthService : IAuthService
             return null;
         }
 
-        return new RegisterResponse
+        return new CurrentUserProfileDto
         {
             UserId = user.Id,
+
             FirstName = user.FirstName,
+
             LastName = user.LastName,
+
             Email = user.Email,
-            CreatedAtUtc = user.CreatedAtUtc
+
+            PhoneNumber = user.PhoneNumber,
+
+            CreatedAtUtc = user.CreatedAtUtc,
+
+            IsAddressVerified = user.IsAddressVerified,
+
+            Address = user.Address == null
+                ? null
+                : new AddressProfileDto
+                {
+                    AddressLine1 = user.Address.AddressLine1,
+
+                    AddressLine2 = user.Address.AddressLine2,
+
+                    City = user.Address.City,
+
+                    State = user.Address.State,
+
+                    PostalCode = user.Address.PostalCode,
+
+                    IsVerified = user.Address.IsVerified
+                }
         };
     }
 }

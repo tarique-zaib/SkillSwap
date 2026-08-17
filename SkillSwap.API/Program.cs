@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using SkillSwap.API.Hubs;
 using SkillSwap.Application.Interfaces;
 using SkillSwap.Infrastructure.Persistence;
 using SkillSwap.Infrastructure.Services;
 using SkillSwap.Infrastructure.Services.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -57,6 +58,7 @@ builder.Services.AddScoped<IReciprocityService, ReciprocityService>();
 builder.Services.AddScoped<ITrustService, TrustService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddSignalR();
 
 string jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException(
@@ -114,5 +116,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
