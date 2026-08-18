@@ -157,7 +157,32 @@ public class MatchService : IMatchService
         match.Status = status;
         match.UpdatedAtUtc = DateTime.UtcNow;
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        // When a match is accepted, create the Favor automatically.
+        // The user should not have to create a separate Favor.
+        if (status == MatchStatus.Accepted)
+        {
+            bool favorExists = await _dbContext.Favors
+                .AnyAsync(
+                    x => x.MatchId == match.Id,
+                    cancellationToken);
+
+            if (!favorExists)
+            {
+                var favor = new Favor
+                {
+                    Id = Guid.NewGuid(),
+                    MatchId = match.Id,
+                    ScheduledTimeUtc = null,
+                    CompletedTimeUtc = null,
+                    Notes = null
+                };
+
+                _dbContext.Favors.Add(favor);
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(
+            cancellationToken);
 
         return match;
     }
@@ -225,6 +250,19 @@ public class MatchService : IMatchService
         }
 
         // The other participant has now confirmed completion.
+        var favor = await _dbContext.Favors
+            .FirstOrDefaultAsync(
+                x => x.MatchId == match.Id,
+                cancellationToken);
+
+        if (favor is null)
+        {
+            throw new InvalidOperationException(
+                "Favor not found for this exchange.");
+        }
+
+        favor.CompletedTimeUtc = DateTime.UtcNow;
+
         match.Status = MatchStatus.Completed;
         match.UpdatedAtUtc = DateTime.UtcNow;
 
