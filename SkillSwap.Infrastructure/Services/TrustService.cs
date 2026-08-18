@@ -66,23 +66,20 @@ public class TrustService : ITrustService
     }
 
     private static string CalculateTier(
-        int completedFavorCount,
-        int vouchCount)
+    int completedFavorCount,
+    int vouchCount)
     {
-        if (completedFavorCount >= 10 &&
-            vouchCount >= 5)
+        if (completedFavorCount >= 5)
         {
             return "Highly Trusted";
         }
 
-        if (completedFavorCount >= 5 &&
-            vouchCount >= 3)
+        if (completedFavorCount >= 3)
         {
             return "Established";
         }
 
-        if (completedFavorCount >= 1 &&
-            vouchCount >= 1)
+        if (completedFavorCount >= 1)
         {
             return "Trusted";
         }
