@@ -64,14 +64,14 @@ public class MatchService : IMatchService
                 "You cannot create a match with your own listings.");
         }
 
-        if (!string.Equals(
-                offer.Category,
-                need.Category,
-                StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException(
-                "Offer and need must belong to the same category.");
-        }
+        //if (!string.Equals(
+        //        offer.Category,
+        //        need.Category,
+        //        StringComparison.OrdinalIgnoreCase))
+        //{
+        //    throw new InvalidOperationException(
+        //        "Offer and need must belong to the same category.");
+        //}
 
         bool alreadyExists = await _dbContext.Matches
             .AnyAsync(
@@ -191,6 +191,13 @@ public class MatchService : IMatchService
                 "Only participants of this match can complete it.");
         }
 
+        // Already completed by both participants.
+        if (match.Status == MatchStatus.Completed)
+        {
+            throw new InvalidOperationException(
+                "This exchange has already been completed.");
+        }
+
         // Only an accepted match can be completed.
         if (match.Status != MatchStatus.Accepted)
         {
@@ -198,6 +205,26 @@ public class MatchService : IMatchService
                 "Only an accepted match can be completed.");
         }
 
+        // First participant marks the exchange complete.
+        if (match.CompletedByUserId is null)
+        {
+            match.CompletedByUserId = userId;
+            match.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync(
+                cancellationToken);
+
+            return match;
+        }
+
+        // The same participant cannot mark it complete twice.
+        if (match.CompletedByUserId == userId)
+        {
+            throw new InvalidOperationException(
+                "You have already marked this exchange as complete. Waiting for the other participant.");
+        }
+
+        // The other participant has now confirmed completion.
         match.Status = MatchStatus.Completed;
         match.UpdatedAtUtc = DateTime.UtcNow;
 

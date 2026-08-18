@@ -24,4 +24,7 @@ public class Match
     public SkillListing Need { get; set; } = null!;
 
     public User InitiatedByUser { get; set; } = null!;
+    // User who has marked the exchange as completed.
+    // The second participant completes the exchange finally.
+    public Guid? CompletedByUserId { get; set; }
 }
