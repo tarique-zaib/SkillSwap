@@ -4,9 +4,9 @@ WORKDIR /src
 
 COPY . .
 
-RUN dotnet restore backend/SkillSwap.API/SkillSwap.API.csproj
+RUN dotnet restore SkillSwap.API/SkillSwap.API.csproj
 
-RUN dotnet publish backend/SkillSwap.API/SkillSwap.API.csproj \
+RUN dotnet publish SkillSwap.API/SkillSwap.API.csproj \
     -c Release \
     -o /app/publish \
     --no-restore
