@@ -24,10 +24,17 @@ public class SkillSwapDbContext : DbContext
     public DbSet<Favor> Favors => Set<Favor>();
     public DbSet<Vouch> Vouches => Set<Vouch>();
     public DbSet<Rating> Ratings { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Notification>()
+    .HasOne(x => x.User)
+    .WithMany()
+    .HasForeignKey(x => x.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(SkillSwapDbContext).Assembly);

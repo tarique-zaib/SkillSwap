@@ -58,6 +58,7 @@ builder.Services.AddScoped<IReciprocityService, ReciprocityService>();
 builder.Services.AddScoped<ITrustService, TrustService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddSignalR();
 
 string jwtKey = builder.Configuration["Jwt:Key"]

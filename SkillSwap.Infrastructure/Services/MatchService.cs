@@ -9,10 +9,12 @@ namespace SkillSwap.Infrastructure.Services;
 public class MatchService : IMatchService
 {
     private readonly SkillSwapDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
-    public MatchService(SkillSwapDbContext dbContext)
+    public MatchService(SkillSwapDbContext dbContext, INotificationService notificationService)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<Match> CreateAsync(
@@ -101,6 +103,22 @@ public class MatchService : IMatchService
         _dbContext.Matches.Add(match);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        Guid recipientUserId =
+    offer.UserId == userId
+        ? need.UserId
+        : offer.UserId;
+
+        Console.WriteLine(
+    $"CREATING NOTIFICATION FOR USER: {recipientUserId}");
+
+        await _notificationService.CreateAsync(
+            recipientUserId,
+            "ProposalReceived",
+            "New Skill Exchange Proposal",
+            $"{(offer.UserId == userId ? offer.Title : need.Title)} has a new skill exchange proposal.",
+            match.Id,
+            cancellationToken);
 
         return match;
     }
